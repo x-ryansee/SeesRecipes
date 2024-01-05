@@ -24,8 +24,11 @@ def add_recipe():
     title = data.get('title')
     description = data.get('description')
     imageUrl = data.get('imageUrl')
+    mealTypes = ','.join(data.get('mealTypes', []))  # Join the list into a comma-separated string
+    diets = ','.join(data.get('diets', []))          # Join the list into a comma-separated string
+    cuisine = data.get('cuisine')
 
-    recipe = Recipe(title=title, description=description, imageUrl=imageUrl)
+    recipe = Recipe(title=title, description=description, imageUrl=imageUrl, mealTypes=mealTypes, diets=diets, cuisine=cuisine)
     db.session.add(recipe)
     db.session.commit()
 
@@ -33,8 +36,12 @@ def add_recipe():
         'id': recipe.id,
         'title': recipe.title,
         'description': recipe.description,
-        'imageUrl': recipe.imageUrl
+        'imageUrl': recipe.imageUrl,
+        'mealTypes': recipe.mealTypes.split(','),  # Split the string back into a list
+        'diets': recipe.diets.split(','),          # Split the string back into a list
+        'cuisine': recipe.cuisine
     }), 201
+
 
 # Route to get all recipes
 @app.route('/recipes', methods=['GET'])
@@ -46,13 +53,13 @@ def get_recipes():
                 'id': recipe.id,
                 'title': recipe.title,
                 'description': recipe.description,
-                'imageUrl': recipe.imageUrl
+                'imageUrl': recipe.imageUrl,
+                'mealTypes': recipe.mealTypes.split(',') if recipe.mealTypes else [],  # Convert to list if not empty
+                'diets': recipe.diets.split(',') if recipe.diets else [],              # Convert to list if not empty
+                'cuisine': recipe.cuisine
             } for recipe in recipes
         ]
         return jsonify(recipes_data)
     except Exception as e:
         app.logger.error(f"Error fetching recipes: {e}")
         return jsonify({"error": str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
